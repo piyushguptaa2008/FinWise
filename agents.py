@@ -1,7 +1,7 @@
 
 from langchain_core.tools import tool
-from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
+from model_config import get_model
 from rag import retrieve_context
 
 from agent_tools import (
@@ -15,7 +15,6 @@ from agent_tools import (
 @tool
 def search_financial_knowledge(query: str) -> str:
     """Retrieve relevant financial knowledge for a user's question."""
-
     results = retrieve_context(query)
 
     if not results:
@@ -28,20 +27,13 @@ def search_financial_knowledge(query: str) -> str:
 
 
 @tool
-def calculate_remaining_balance(
-    income: float, expenses: float
-) -> float:
+def calculate_remaining_balance(income: float, expenses: float) -> float:
     """Calculate remaining balance in Indian rupees."""
-
     return round(income - expenses, 2)
 
 
 def create_finwise_agent():
-    model = ChatOllama(
-        model="qwen2.5:7b",
-        base_url="http://localhost:11434",
-        temperature=0
-    )
+    model = get_model()
 
     tools = [
         search_financial_knowledge,
@@ -52,12 +44,7 @@ def create_finwise_agent():
         create_budget_plan
     ]
 
-    agent = create_react_agent(
-        model,
-        tools=tools
-    )
-
-    return agent
+    return create_react_agent(model, tools=tools)
 
 
 def run_agent(question, return_trace=False):
