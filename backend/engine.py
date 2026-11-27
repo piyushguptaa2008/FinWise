@@ -1,3 +1,4 @@
+
 from backend.transactions import load_transactions
 from backend.categorizer import categorize_transactions
 from backend.analysis import analyze_spending
@@ -17,9 +18,10 @@ def run_finwise(file, monthly_income):
     latest_month = df["date"].max().to_period("M") if not df.empty else None
 
     monthly_spending = df.loc[
-        df["date"].dt.to_period("M") == latest_month,
+        (df["date"].dt.to_period("M") == latest_month)
+        & (df["amount"] < 0),
         "amount"
-    ].sum() if not df.empty else 0
+    ].abs().sum() if not df.empty else 0
 
     budget = generate_budget(
         monthly_income,

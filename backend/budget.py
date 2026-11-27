@@ -1,6 +1,10 @@
+
 def generate_budget(monthly_income, total_spending):
     if monthly_income <= 0:
         raise ValueError("Income must be greater than zero")
+
+    if total_spending < 0:
+        raise ValueError("Total spending cannot be negative")
 
     needs = monthly_income * 0.50
     wants = monthly_income * 0.30
