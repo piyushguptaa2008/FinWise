@@ -2,6 +2,8 @@
 import re
 import math
 
+from rag import retrieve_context
+
 from agent_tools import (
     analyze_transactions,
     detect_subscriptions,
@@ -19,6 +21,7 @@ BACKEND_TOOLS = {
 
 
 def extract_monthly_income(question):
+
     pattern = (
         r"\b(?:monthly\s+)?income"
         r"\s*(?:is|of|=|:)?\s*"
@@ -42,29 +45,58 @@ def extract_monthly_income(question):
     return income
 
 
+def recover_financial_knowledge(question):
+
+    results = retrieve_context(question)
+
+    if not results:
+        return None
+
+    return "\n".join(
+        f"[{doc['id']}] {doc['content']}"
+        for doc in results
+    )
+
+
 def recover_missing_tools(question, missing_tools):
 
     recovered = {}
-    income = extract_monthly_income(question)
 
-    if income is None:
-        return recovered
+    income = extract_monthly_income(question)
 
     for name in missing_tools:
 
-        if name not in BACKEND_TOOLS:
-            continue
-
         try:
-            result = BACKEND_TOOLS[name].invoke({
-                "monthly_income": income
-            })
 
-            recovered[name] = result
+            # RAG recovery does not require income
+            if name == "search_financial_knowledge":
 
-            print("Recovered tool:", name)
+                result = recover_financial_knowledge(
+                    question
+                )
+
+                if result:
+                    recovered[name] = result
+                    print("Recovered tool:", name)
+
+                continue
+
+            # Backend tools require income
+            if name in BACKEND_TOOLS:
+
+                if income is None:
+                    continue
+
+                result = BACKEND_TOOLS[name].invoke({
+                    "monthly_income": income
+                })
+
+                recovered[name] = result
+
+                print("Recovered tool:", name)
 
         except Exception as error:
+
             print("Recovery failed:", name, error)
 
     return recovered
@@ -73,14 +105,13 @@ def recover_missing_tools(question, missing_tools):
 if __name__ == "__main__":
 
     question = (
-        "Analyze transactions and create a "
-        "monthly budget plan with an income "
-        "of 15000 rupees."
+        "Explain the 50/30/20 budgeting rule "
+        "using the financial knowledge base."
     )
 
     results = recover_missing_tools(
         question,
-        ["create_budget_plan"]
+        ["search_financial_knowledge"]
     )
 
     print(results)
