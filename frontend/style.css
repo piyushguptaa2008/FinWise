@@ -1,0 +1,493 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+.top-brand-wrap {
+    margin-bottom: 30px;
+}
+
+.top-brand {
+    font-size: 70px !important;
+    font-weight: 900;
+    letter-spacing: -3px;
+    color: #384536;
+    line-height: 1.2;
+    text-shadow: 0 5px 15px #91b47530;
+}
+
+.top-brand-sub {
+    font-size: 25px;
+    font-weight: 700;
+    color: #435240;
+    margin-top: 12px;
+}
+
+.top-brand-text {
+    font-size: 16px;
+    color: #69775e;
+    margin-top: 8px;
+}
+
+/* PREMIUM FINWISE NAVIGATION */
+
+[data-testid="stSidebar"] {
+    background: linear-gradient(
+        160deg,
+        #fffaf4,
+        #f0f1e5
+    ) !important;
+    border-right: 1px solid #e1e5d6;
+}
+
+/* Brand */
+
+.nav-brand {
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: #384536;
+    margin-bottom: 5px;
+}
+
+.nav-tagline {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #748369;
+    margin-bottom: 40px;
+}
+
+.nav-section {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #858c79;
+    margin-bottom: 10px;
+}
+
+/* Navigation buttons */
+
+[data-testid="stSidebar"] .stButton > button {
+    background: transparent !important;
+    color: #384536 !important;
+    border: 1px solid transparent !important;
+    border-radius: 16px !important;
+    min-height: 58px;
+    padding: 15px 20px;
+    justify-content: flex-start;
+    box-shadow: none;
+    transition: all 0.25s ease;
+}
+
+[data-testid="stSidebar"] .stButton > button p {
+    font-size: 16px;
+    font-weight: 600;
+    color: inherit !important;
+}
+
+/* Hover effect */
+
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: #e5ecd8 !important;
+    transform: translateX(5px);
+    border-color: #cbd9b9 !important;
+}
+
+/* Selected menu */
+
+[data-testid="stSidebar"] button[kind="primary"],
+[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"] {
+    background: linear-gradient(
+        135deg,
+        #e0ebcd,
+        #c2d6a8
+    ) !important;
+
+    color: #384536 !important;
+    box-shadow: 0 6px 18px #91b47530;
+}
+
+/* Premium sidebar card */
+
+.nav-premium {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+        135deg,
+        #e8e0f2,
+        #f5e9ce
+    );
+    border-radius: 24px;
+    padding: 22px;
+    margin-top: 20px;
+}
+
+.nav-star {
+    color: #857397;
+    font-size: 38px;
+    animation: starFloat 3s ease-in-out infinite;
+}
+
+.nav-premium h3 {
+    color: #51455e !important;
+    font-size: 21px;
+}
+
+.nav-premium p {
+    color: #746782 !important;
+    font-size: 14px;
+}
+
+/* Account */
+
+.nav-account {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    border-radius: 18px;
+    background: #e8ebde;
+    color: #384536;
+    margin-top: 20px;
+}
+
+.nav-avatar {
+    width: 42px;
+    height: 42px;
+    background: #c8dbb3;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 25px;
+}
+
+.nav-account small {
+    color: #748369;
+}
+
+/* Animation */
+
+@keyframes starFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-star {
+        animation: none;
+    }
+
+    [data-testid="stSidebar"] .stButton > button {
+        transition: none;
+        transform: none !important;
+    }
+}
+/* Dark mode switch visibility */
+
+[data-testid="stSidebar"] label p {
+    color: #384536 !important;
+    font-size: 15px !important;
+    font-weight: 600;
+}
+
+/* Light mode top navigation bar */
+
+[data-testid="stHeader"] {
+    background: #faf4ee !important;
+}
+
+/* GLOBAL FINWISE THEME */
+
+:root {
+    --fw-bg: #faf4ee;
+    --fw-surface: #fffdf8;
+    --fw-text: #384536;
+    --fw-input: #f0f2e7;
+    --fw-border: #dce5d0;
+}
+
+/* Background for every page */
+
+.stApp,
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"] {
+    background: var(--fw-bg) !important;
+    color: var(--fw-text) !important;
+}
+
+/* All headings */
+
+h1, h2, h3, h4 {
+    color: var(--fw-text) !important;
+}
+
+/* Paragraphs and labels */
+
+[data-testid="stMain"] p,
+[data-testid="stMain"] label {
+    color: var(--fw-text) !important;
+}
+
+/* Expense form */
+
+[data-testid="stForm"] {
+    background: var(--fw-surface) !important;
+    border: 1px solid var(--fw-border) !important;
+    border-radius: 24px !important;
+    padding: 25px !important;
+    box-shadow: 0 10px 30px #526b4210;
+}
+
+/* Input fields */
+
+.stTextInput input,
+.stNumberInput input,
+.stDateInput input,
+.stTextArea textarea {
+    background: var(--fw-input) !important;
+    color: var(--fw-text) !important;
+}
+
+/* Input containers and dropdown */
+
+[data-baseweb="input"],
+[data-baseweb="base-input"],
+[data-baseweb="select"] > div {
+    background: var(--fw-input) !important;
+    color: var(--fw-text) !important;
+    border-color: var(--fw-border) !important;
+    border-radius: 12px !important;
+}
+
+/* Add Expense button */
+
+.stFormSubmitButton button {
+    background: #526b42 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    padding: 14px !important;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.stFormSubmitButton button p {
+    color: white !important;
+}
+
+.stFormSubmitButton button:hover {
+    background: #78965b !important;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px #91b47550;
+}
+
+/* Upper toolbar */
+
+[data-testid="stHeader"] {
+    background: var(--fw-bg) !important;
+    border-bottom: 1px solid var(--fw-border);
+}
+
+[data-testid="stHeader"] button {
+    color: var(--fw-text) !important;
+}
+
+/* Hide unnecessary Deploy button */
+
+[data-testid="stAppDeployButton"],
+.stAppDeployButton {
+    display: none !important;
+}
+
+/* PREMIUM FINWISE TYPOGRAPHY */
+
+/* Main font */
+
+.stApp,
+button,
+input,
+textarea,
+select,
+[data-testid="stMarkdownContainer"],
+[data-testid="stWidgetLabel"] {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Premium headings */
+
+h1, h2, h3, h4,
+.top-brand,
+.nav-brand,
+.fw-heading,
+.expense-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: -1.8px;
+}
+
+/* Main FinWise logo */
+
+.top-brand {
+    font-size: 72px !important;
+    font-weight: 800 !important;
+    letter-spacing: -4px !important;
+}
+
+/* Sidebar logo */
+
+.nav-brand {
+    font-size: 34px !important;
+    letter-spacing: -2px !important;
+}
+
+/* Dashboard headline */
+
+.fw-heading {
+    font-size: clamp(38px, 5vw, 68px) !important;
+    font-weight: 800 !important;
+    letter-spacing: -3px !important;
+    line-height: 1.12;
+}
+
+/* Expense page headline */
+
+.expense-heading {
+    font-size: 52px !important;
+    font-weight: 800 !important;
+    letter-spacing: -2.5px !important;
+}
+
+/* Financial numbers */
+
+.fw-amount,
+.fw-donut-amount,
+[data-testid="stMetricValue"] {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1.5px;
+}
+
+/* Sidebar menu */
+
+[data-testid="stSidebar"] button p {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.3px;
+}
+
+/* Small premium captions */
+
+.fw-eyebrow,
+.expense-caption,
+.nav-section,
+.nav-tagline {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 600;
+    letter-spacing: 3px;
+}
+
+/* Description text */
+
+.fw-description,
+.expense-description,
+.top-brand-text {
+    font-size: 16px !important;
+    font-weight: 400;
+    line-height: 1.7;
+}
+
+/* Input labels */
+
+[data-testid="stWidgetLabel"] p {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+/* Button typography */
+
+.stButton button,
+.stFormSubmitButton button {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.3px;
+}
+
+/* PREMIUM TRANSACTION TABLE */
+
+.fw-transaction-table {
+    background: var(--fw-surface, #fffdf8);
+    border: 1px solid var(--fw-border, #dce5d0);
+    border-radius: 20px;
+    overflow-x: auto;
+    padding: 16px;
+}
+
+.fw-transaction-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Inter', sans-serif;
+    border: none !important;
+}
+
+.fw-transaction-table th {
+    background: var(--fw-input, #e1ebcd) !important;
+    color: var(--fw-text, #171717) !important;
+    padding: 18px !important;
+    text-align: left;
+    font-weight: 700;
+    border: none !important;
+}
+
+.fw-transaction-table td {
+    background: var(--fw-surface, #fffdf8) !important;
+    color: var(--fw-text, #171717) !important;
+    padding: 16px !important;
+    border: none !important;
+    border-bottom: 1px solid var(--fw-border, #dce5d0) !important;
+}
+
+.fw-transaction-table tr:hover td {
+    background: var(--fw-input, #e1ebcd) !important;
+}
+
+/* DOWNLOAD REPORT BUTTON */
+
+[data-testid="stDownloadButton"] button {
+    background: var(--fw-input, #e1ebcd) !important;
+    color: var(--fw-text, #171717) !important;
+    border: 1px solid var(--fw-border, #c2d6a8) !important;
+    border-radius: 14px !important;
+    padding: 14px 24px !important;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+[data-testid="stDownloadButton"] button p {
+    color: var(--fw-text, #171717) !important;
+}
+
+[data-testid="stDownloadButton"] button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px #91b47540;
+}
+
+/* BUDGET PROGRESS BAR */
+
+.stProgress [role="progressbar"] {
+    background: var(--fw-input, #e1ebcd) !important;
+    border-radius: 20px;
+}
+
+.stProgress [role="progressbar"] > div {
+    background: #91b475 !important;
+}
+
+/* NUMBER INPUT BUTTONS */
+
+.stNumberInput button {
+    background: var(--fw-input, #e1ebcd) !important;
+    color: var(--fw-text, #171717) !important;
+}

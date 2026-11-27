@@ -1,0 +1,390 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinWise | Smart Gullak</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: #fff9ed;
+    font-family: system-ui, sans-serif;
+}
+
+.fwstage {
+    width: min(95%, 680px);
+    height: 450px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    background: linear-gradient(125deg, #dceac6, #fff9ed, #f7cbd7);
+    background-size: 200% 200%;
+    animation: bg 8s ease infinite alternate;
+    text-align: center;
+    color: #48623d;
+    box-shadow: 0 18px 55px #48623d18;
+}
+
+.fwstage svg {
+    width: 100%;
+    height: 330px;
+    margin-top: 30px;
+    display: block;
+}
+
+.jar {
+    transform-origin: 200px 285px;
+    animation: jar 6s infinite;
+}
+
+.lid {
+    animation: lid 6s infinite;
+    transform-origin: 200px 140px;
+}
+
+.money {
+    opacity: 0;
+    animation: money 6s infinite;
+    transform-origin: 200px 30px;
+}
+
+.m2 { animation-delay: .65s; }
+.m3 { animation-delay: 1.3s; }
+.m4 { animation-delay: 1.95s; }
+
+.ring {
+    transform-origin: 200px 150px;
+    animation: ring 6s infinite;
+    opacity: 0;
+}
+
+.star {
+    animation: stars 6s infinite;
+    transform-origin: 200px 160px;
+    opacity: 0;
+}
+
+.leaf {
+    animation: leaf 4s ease-in-out infinite;
+    transform-origin: center;
+    transform-box: fill-box;
+}
+
+.level {
+    animation: level 6s linear infinite;
+    transform-origin: bottom;
+    transform-box: fill-box;
+}
+
+.bar {
+    animation: bar 6s linear infinite;
+    height: 100%;
+    background: linear-gradient(90deg, #8eac70, #d58b9d);
+    border-radius: 10px;
+}
+
+.success {
+    animation: success 6s infinite;
+    opacity: 0;
+}
+
+.eyebrow {
+    position: absolute;
+    top: 17px;
+    width: 100%;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+.brand {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    margin-top: -6px;
+}
+
+.brand span {
+    color: #cf7d93;
+}
+
+.status {
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.track {
+    width: 210px;
+    height: 7px;
+    border-radius: 10px;
+    background: #ffffffb0;
+    margin: 13px auto;
+    overflow: hidden;
+}
+
+@keyframes bg {
+    to { background-position: 100% 100%; }
+}
+
+@keyframes lid {
+    0%, 100% { transform: translateY(0); }
+    12%, 64% { transform: translate(42px, -45px) rotate(25deg); }
+    78% { transform: translateY(0); }
+}
+
+@keyframes money {
+    0%, 8% {
+        opacity: 0;
+        transform: translate(-90px, -25px) rotate(-45deg) scale(.6);
+    }
+    12% { opacity: 1; }
+    20% {
+        transform: translate(0, 30px) rotate(180deg);
+        opacity: 1;
+    }
+    27% {
+        transform: translate(0, 115px) rotate(360deg) scale(.65);
+        opacity: 1;
+    }
+    29%, 100% {
+        opacity: 0;
+        transform: translate(0, 150px) scale(.2);
+    }
+}
+
+@keyframes jar {
+    0%, 26%, 100% { transform: scale(1); }
+    30%, 41%, 52%, 63% {
+        transform: scale(1.06, .95) rotate(-2deg);
+    }
+    34%, 45%, 56%, 67% {
+        transform: translateY(-7px) rotate(2deg);
+    }
+    37%, 48%, 59%, 71% { transform: scale(1); }
+    80% { transform: translateY(-18px) scale(1.04); }
+    88% { transform: scale(1); }
+}
+
+@keyframes ring {
+    0%, 72% { transform: scale(.2); opacity: 0; }
+    78% { opacity: .8; }
+    94%, 100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes stars {
+    0%, 70% { opacity: 0; transform: scale(.2); }
+    80% { opacity: 1; transform: scale(1); }
+    96%, 100% { opacity: 0; transform: scale(1.4); }
+}
+
+@keyframes leaf {
+    0%, 100% { transform: translateY(0) rotate(-8deg); }
+    50% { transform: translateY(-16px) rotate(8deg); }
+}
+
+@keyframes level {
+    0%, 27% { transform: scaleY(.05); }
+    28%, 37% { transform: scaleY(.25); }
+    39%, 48% { transform: scaleY(.5); }
+    50%, 59% { transform: scaleY(.75); }
+    61%, 94% { transform: scaleY(1); }
+    100% { transform: scaleY(.05); }
+}
+
+@keyframes bar {
+    0%, 27% { width: 0; }
+    28%, 37% { width: 25%; }
+    39%, 48% { width: 50%; }
+    50%, 59% { width: 75%; }
+    61%, 94% { width: 100%; }
+    100% { width: 0; }
+}
+
+@keyframes success {
+    0%, 75%, 100% { opacity: 0; }
+    81%, 94% { opacity: 1; }
+}
+</style>
+</head>
+
+<body>
+
+<main class="fwstage">
+
+
+<svg viewBox="0 0 400 330">
+
+<defs>
+    <radialGradient id="clay" cx="28%" cy="20%" r="90%">
+        <stop stop-color="#ffdfdc"/>
+        <stop offset=".45" stop-color="#e7a0ad"/>
+        <stop offset="1" stop-color="#a75b70"/>
+    </radialGradient>
+
+    <linearGradient id="gold" x2="100%" y2="100%">
+        <stop stop-color="#fff4b0"/>
+        <stop offset=".5" stop-color="#edc15a"/>
+        <stop offset="1" stop-color="#bd862e"/>
+    </linearGradient>
+
+    <clipPath id="window">
+        <rect x="169" y="182" width="62" height="82" rx="29"/>
+    </clipPath>
+
+    <g id="coin">
+        <circle cx="200" cy="30" r="19" fill="#b78429"/>
+        <circle cx="198" cy="28" r="18" fill="url(#gold)"
+                stroke="#e8bb53" stroke-width="2"/>
+        <circle cx="198" cy="28" r="13" fill="none"
+                stroke="#fff0aa"/>
+        <text x="198" y="36" text-anchor="middle"
+              font-size="24" font-weight="bold"
+              fill="#94601b">₹</text>
+    </g>
+</defs>
+
+<circle cx="200" cy="181" r="125" fill="#fff" opacity=".36"/>
+
+<circle cx="200" cy="181" r="140" fill="none"
+        stroke="#9db183" stroke-dasharray="2 9" opacity=".6"/>
+
+<circle class="ring" cx="200" cy="150" r="78"
+        stroke="#a5bd83" stroke-width="3" fill="none"/>
+
+<g class="leaf">
+    <rect x="26" y="92" width="64" height="34" rx="6"
+          fill="#a1b984" transform="rotate(-18 58 109)"/>
+    <text x="58" y="118" text-anchor="middle"
+          font-size="23" fill="#f5ffe8">₹</text>
+</g>
+
+<g class="leaf" style="animation-delay:-2s">
+    <rect x="310" y="105" width="64" height="34" rx="6"
+          fill="#e4a1b1" transform="rotate(18 342 122)"/>
+    <text x="342" y="131" text-anchor="middle"
+          font-size="23" fill="#fff">₹</text>
+</g>
+
+<ellipse cx="200" cy="300" rx="108" ry="13"
+         fill="#536a43" opacity=".14"/>
+
+<g class="jar">
+
+    <path d="M157 145 C155 167 103 179 102 225
+             C100 274 139 294 200 294
+             C261 294 300 274 298 225
+             C297 179 245 167 243 145Z"
+          fill="url(#clay)"/>
+
+    <ellipse cx="200" cy="145" rx="43" ry="13" fill="#ba7987"/>
+    <ellipse cx="200" cy="145" rx="34" ry="8" fill="#673a45"/>
+
+    <path d="M110 204 Q200 224 290 204
+             M110 260 Q200 280 290 260"
+          fill="none" stroke="#ffe6dc" stroke-width="4"/>
+
+    <path d="M136 184 Q118 210 130 233"
+          stroke="#fff" stroke-width="8" fill="none"
+          opacity=".4" stroke-linecap="round"/>
+
+    <rect x="166" y="179" width="68" height="88" rx="33"
+          fill="#647b50" stroke="#fff0df" stroke-width="4"/>
+
+    <rect x="169" y="182" width="62" height="82" rx="29"
+          fill="#dbe6c6"/>
+
+    <g clip-path="url(#window)">
+        <g class="level" fill="url(#gold)" stroke="#b98c39">
+            <rect x="172" y="248" width="56" height="12" rx="6"/>
+            <rect x="170" y="233" width="58" height="12" rx="6"/>
+            <rect x="174" y="218" width="54" height="12" rx="6"/>
+            <rect x="171" y="203" width="57" height="12" rx="6"/>
+            <rect x="175" y="188" width="52" height="12" rx="6"/>
+        </g>
+    </g>
+
+    <g class="lid">
+        <path d="M154 141 Q154 129 183 126
+                 L188 117 Q200 111 212 117
+                 L217 126 Q246 129 246 141
+                 L246 147 Q200 160 154 147Z"
+              fill="url(#clay)"/>
+        <ellipse cx="200" cy="141" rx="46" ry="9" fill="#f4bdc5"/>
+        <ellipse cx="200" cy="139" rx="22" ry="3.5" fill="#734550"/>
+    </g>
+
+</g>
+
+<g class="money"><use href="#coin"/></g>
+<g class="money m2"><use href="#coin"/></g>
+<g class="money m3"><use href="#coin"/></g>
+<g class="money m4"><use href="#coin"/></g>
+
+<g class="star" fill="#d5a23c">
+    <path d="M100 125l5 12 12 5-12 5-5 12-5-12-12-5 12-5z"/>
+    <path d="M296 170l5 12 12 5-12 5-5 12-5-12-12-5 12-5z"/>
+    <path d="M240 70l4 9 9 4-9 4-4 9-4-9-9-4 9-4z"/>
+    <circle cx="145" cy="85" r="4"/>
+    <circle cx="315" cy="78" r="5"/>
+    <circle cx="80" cy="220" r="4"/>
+</g>
+
+<g class="success">
+    <circle cx="300" cy="235" r="23"
+            fill="#779b5c" stroke="#fff" stroke-width="3"/>
+    <path d="M290 235l7 7 13-15"
+          stroke="white" stroke-width="4" fill="none"
+          stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+
+</svg>
+
+
+<div id="status" class="status">
+    Opening your Gullak...
+</div>
+
+<div class="track">
+    <div class="bar"></div>
+</div>
+
+</main>
+
+<script>
+const statusText = document.getElementById("status");
+const start = performance.now();
+
+function update(time) {
+    const seconds = ((time - start) % 6000) / 1000;
+
+    const deposited = Math.max(
+        0, Math.min(4, Math.floor((seconds - 1.62) / .65) + 1)
+    );
+
+    if (seconds < 1) {
+        statusText.textContent = "Opening your Gullak...";
+    } else if (seconds < 4.2) {
+        statusText.textContent = "Saving your money • ₹" + deposited * 100;
+    } else if (seconds < 4.8) {
+        statusText.textContent = "Securing your savings...";
+    } else {
+        statusText.textContent = "✓ Savings goal achieved!";
+    }
+
+    requestAnimationFrame(update);
+}
+
+requestAnimationFrame(update);
+</script>
+
+</body>
+</html>
