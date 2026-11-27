@@ -10,3 +10,4 @@ __pycache__/
 !.env.example
 data/*.csv
 !data/transactions.csv
+approved_plans/
