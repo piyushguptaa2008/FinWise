@@ -1,63 +1,138 @@
 
 import re
+import calendar
+
+
+def extract_period(question):
+
+    question = question.lower()
+
+    months = [
+        number for number in range(1, 13)
+        if re.search(
+            rf"\b{calendar.month_name[number].lower()}\b",
+            question
+        )
+    ]
+
+    years = list(set(
+        re.findall(r"\b20\d{2}\b", question)
+    ))
+
+    if len(months) > 1 or len(years) > 1:
+        raise ValueError(
+            "Please specify a single month and year."
+        )
+
+    return {
+        "month": months[0] if months else 0,
+        "year": int(years[0]) if years else 0
+    }
 
 
 def identify_required_tools(question):
+
     question = question.lower()
     required_tools = []
 
     patterns = {
+
         "analyze_transactions": [
             r"\banaly[sz]e\b.*\btransactions?\b",
             r"\bspending patterns?\b",
-            r"\btransaction analysis\b"
+            r"\btransaction analysis\b",
+            r"\btotal income\b",
+            r"\btotal spending\b",
+            r"\btotal expenses?\b",
+            r"\bhow much.*\b(spent|spend|earned)\b",
+            r"\bmonthly spending\b",
+            r"\bfinancial summary\b"
         ],
+
         "detect_subscriptions": [
-            r"\bdetect subscriptions?\b",
-            r"\bidentify recurring expenses\b",
-            r"\bfind subscriptions?\b"
+            r"\bsubscriptions?\b"
         ],
+
+        "detect_recurring_payments": [
+            r"\brecurring expenses?\b",
+            r"\brecurring payments?\b",
+            r"\brecurring transactions?\b"
+        ],
+
         "identify_unusual_expenses": [
             r"\banomalies\b",
-            r"\bunusual (expenses|spending)\b",
+            r"\bunusual (expenses|spending|transactions)\b",
             r"\bsuspicious transactions?\b"
         ],
+
         "create_budget_plan": [
             r"\b(create|generate|prepare|make)\b.*\bbudget\b",
             r"\bbudget plan\b"
         ],
+
         "calculate_remaining_balance": [
             r"\bremaining balance\b",
             r"\bcalculate\b.*\bbalance\b",
-            r"\bmoney left\b"
+            r"\bmoney left\b",
+            r"\bnet balance\b",
+            r"\bmy balance\b",
+            r"\bhow much.*\bleft\b"
         ],
+
         "search_financial_knowledge": [
             r"\bknowledge base\b",
             r"\bfinancial knowledge\b",
             r"\bbudgeting rule\b",
-            r"\bfinancial advice\b"
+            r"\bfinancial advice\b",
+            r"50\s*/\s*30\s*/\s*20"
         ]
     }
 
     for tool_name, expressions in patterns.items():
-        if any(re.search(pattern, question)
-               for pattern in expressions):
+
+        if any(
+            re.search(pattern, question)
+            for pattern in expressions
+        ):
             required_tools.append(tool_name)
+
+    has_month = any(
+        re.search(
+            rf"\b{calendar.month_name[number].lower()}\b",
+            question
+        )
+        for number in range(1, 13)
+    )
+
+    has_year = bool(
+        re.search(r"\b20\d{2}\b", question)
+    )
+
+    if (has_month or has_year) and re.search(
+        r"\b(spending|expenses?|income|spent|spend|earned)\b",
+        question
+    ):
+
+        if "analyze_transactions" not in required_tools:
+            required_tools.append("analyze_transactions")
 
     return required_tools
 
 
 if __name__ == "__main__":
-    test_questions = [
-        "Analyze transactions and create a budget plan",
-        "Find subscriptions",
-        "Identify unusual expenses",
+
+    questions = [
+        "What is my November spending?",
+        "Show October 2026 expenses",
+        "Show my total income and spending",
+        "Show my recurring subscriptions",
+        "Show all recurring expenses",
         "Calculate my remaining balance",
-        "Search the financial knowledge base",
-        "Hello"
+        "Explain the 50/30/20 budgeting rule"
     ]
 
-    for question in test_questions:
+    for question in questions:
+
         print("\nQuestion:", question)
-        print("Required tools:",
-              identify_required_tools(question))
+        print("Tools:", identify_required_tools(question))
+        print("Period:", extract_period(question))
