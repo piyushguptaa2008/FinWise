@@ -24,7 +24,20 @@ def categorize_transaction(description):
 
 def categorize_transactions(df):
     df = df.copy()
-    df["category"] = df["description"].apply(
-        categorize_transaction
-    )
+
+    if "category" not in df.columns:
+        df["category"] = df["description"].apply(
+            categorize_transaction
+        )
+    else:
+        missing = (
+            df["category"].isna()
+            | df["category"].astype(str).str.strip().eq("")
+        )
+
+        df.loc[missing, "category"] = (
+            df.loc[missing, "description"]
+            .apply(categorize_transaction)
+        )
+
     return df
