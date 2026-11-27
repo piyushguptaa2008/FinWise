@@ -1,3 +1,4 @@
+from turtle import pd
 import unittest
 from backend.engine import run_finwise
 
@@ -39,6 +40,16 @@ class TestFinWise(unittest.TestCase):
 
         for item in result["anomalies"]:
             self.assertGreater(item["amount"], 0)
+    def test_category_preservation(self):
+        import pandas as pd
+        from backend.categorizer import categorize_transactions
+
+        df = pd.read_csv("data/transactions.csv")
+        result = categorize_transactions(df)
+
+        self.assertTrue(
+            df["category"].equals(result["category"])
+        )
 
 
 if __name__ == "__main__":
