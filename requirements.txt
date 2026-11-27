@@ -7,3 +7,5 @@ langchain
 langchain-google-genai
 python-dotenv
 langchain-ollama
+llama-cpp-python==0.3.38
+huggingface-hub

@@ -1,6 +1,7 @@
 
 import re
 import json
+import math
 
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
@@ -20,6 +21,7 @@ from agent_tools import (
 @tool
 def search_financial_knowledge(query: str) -> str:
     """Retrieve relevant financial knowledge."""
+
     results = retrieve_context(query)
 
     if not results:
@@ -36,6 +38,7 @@ def calculate_remaining_balance(
     income: float, expenses: float
 ) -> float:
     """Calculate remaining balance in Indian rupees."""
+
     return round(income - expenses, 2)
 
 
@@ -69,7 +72,9 @@ def run_agent(question, return_trace=False):
         "Monthly budget covers the latest month in the dataset. "
         "Cite retrieved knowledge IDs. "
         "Provide educational budgeting guidance in INR. "
-        "Never perform financial actions without human approval."
+        "Never perform financial actions without human approval. "
+        "Do not repeat successful tool calls. "
+        "After receiving tool results, provide a final answer."
     )
 
     if required_tools:
@@ -98,15 +103,31 @@ def run_agent(question, return_trace=False):
             if getattr(message, "status", None) == "error":
                 continue
 
-            executed_tools.append(message.name)
-            tool_results[message.name] = message.content
+            if message.name == "calculate_remaining_balance":
+
+                try:
+                    balance = float(message.content)
+
+                    if not math.isfinite(balance):
+                        continue
+
+                except (ValueError, TypeError):
+                    continue
 
             if message.name == "search_financial_knowledge":
+
                 ids = re.findall(
                     r"\[(KB\d+)\]",
                     str(message.content)
                 )
+
+                if not ids:
+                    continue
+
                 knowledge_ids.update(ids)
+
+            executed_tools.append(message.name)
+            tool_results[message.name] = message.content
 
     missing_tools = [
         name for name in required_tools
@@ -122,6 +143,20 @@ def run_agent(question, return_trace=False):
         )
 
         for name, output in recovered.items():
+
+            # Track recovered RAG citations
+            if name == "search_financial_knowledge":
+
+                ids = re.findall(
+                    r"\[(KB\d+)\]",
+                    str(output)
+                )
+
+                if not ids:
+                    continue
+
+                knowledge_ids.update(ids)
+
             recovered_tools.append(name)
             tool_results[name] = output
 
@@ -152,6 +187,18 @@ def run_agent(question, return_trace=False):
 
         sections = []
 
+        # Grounded calculation result
+        if "calculate_remaining_balance" in tool_results:
+
+            balance = float(
+                tool_results["calculate_remaining_balance"]
+            )
+
+            sections.append(
+                f"Your remaining balance is ₹{balance:,.2f}."
+            )
+
+        # Grounded backend results
         labels = {
             "analyze_transactions":
                 "Transaction Analysis (Entire Dataset)",
@@ -171,28 +218,45 @@ def run_agent(question, return_trace=False):
 
                 try:
                     data = json.loads(raw)
+
                     formatted = json.dumps(
                         data,
                         indent=2,
                         ensure_ascii=False
                     )
+
                 except (ValueError, TypeError):
+
                     formatted = str(raw)
 
                 sections.append(
                     label + ":\n" + formatted
                 )
 
+        # Grounded RAG results
+        if "search_financial_knowledge" in tool_results:
+
+            knowledge = str(
+                tool_results["search_financial_knowledge"]
+            )
+
+            sections.append(
+                "Financial Knowledge:\n" + knowledge
+            )
+
         if sections:
+
             answer = "\n\n".join(sections)
 
         if "create_budget_plan" in tool_results:
+
             answer += (
                 "\n\nReview this budget proposal "
                 "before approving it."
             )
 
         if knowledge_ids:
+
             answer = str(answer) + (
                 "\n\nRetrieved knowledge sources: "
                 + ", ".join(sorted(knowledge_ids))
@@ -204,13 +268,16 @@ def run_agent(question, return_trace=False):
     print("Recovered tools:", recovered_tools)
     print("Missing tools:", missing_tools)
     print("Knowledge sources:", sorted(knowledge_ids))
+
     print(
         "Validation:",
         "PASSED" if validated else "INCOMPLETE"
     )
+
     print("-----------------------------")
 
     if return_trace:
+
         return {
             "answer": answer,
             "tools_used": all_tools if validated else [
