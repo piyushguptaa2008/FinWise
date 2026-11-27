@@ -1,4 +1,7 @@
 def detect_anomalies(df):
+    df = df[df["amount"] < 0].copy()
+    df["amount"] = df["amount"].abs()
+
     if len(df) < 3:
         return []
 
