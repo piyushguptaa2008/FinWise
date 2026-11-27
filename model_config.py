@@ -10,7 +10,7 @@ def get_model():
 
     if provider == "ollama":
         return ChatOllama(
-            model="qwen2.5:7b",
+            model=os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
             base_url="http://localhost:11434",
             temperature=0
         )
