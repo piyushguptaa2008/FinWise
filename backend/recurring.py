@@ -1,5 +1,6 @@
 def detect_recurring_expenses(df):
-    df = df.copy()
+    df = df[df["amount"] < 0].copy()
+    df["amount"] = df["amount"].abs()
 
     df["merchant"] = (
         df["description"].astype(str).str.lower().str.strip()

@@ -1,14 +1,21 @@
 def analyze_spending(df):
-    total_spending = df["amount"].sum()
+    expenses = df[df["amount"] < 0].copy()
+    income = df[df["amount"] > 0].copy()
+
+    expenses["amount"] = expenses["amount"].abs()
+
+    total_spending = expenses["amount"].sum()
+    total_income = income["amount"].sum()
 
     category_spending = (
-        df.groupby("category")["amount"]
+        expenses.groupby("category")["amount"]
         .sum()
         .sort_values(ascending=False)
     )
 
     average_spending = (
-        df["amount"].mean() if not df.empty else 0
+        expenses["amount"].mean()
+        if not expenses.empty else 0
     )
 
     highest_category = (
@@ -19,8 +26,12 @@ def analyze_spending(df):
 
     return {
         "total_spending": float(total_spending),
+        "total_income": float(total_income),
+        "net_balance": float(total_income - total_spending),
         "average_spending": float(average_spending),
         "total_transactions": len(df),
+        "expense_transactions": len(expenses),
+        "income_transactions": len(income),
         "category_spending": category_spending.to_dict(),
         "highest_category": highest_category
     }
