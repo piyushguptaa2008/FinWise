@@ -179,9 +179,9 @@ def show_expenses():
             key="studio_budget"
         )
 
-    s.monthly_budget = budget
-
-    save_data()
+    if s.monthly_budget != budget:
+        s.monthly_budget = budget
+        save_data()
 
     df = pd.DataFrame(
         s.expenses,

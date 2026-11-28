@@ -387,11 +387,56 @@ def _run_agent(question, return_trace=False):
                         " (" + data["period"] + ")"
                     )
 
-                formatted = json.dumps(
-                    data,
-                    indent=2,
-                    ensure_ascii=False
-                )
+                if name == "analyze_transactions":
+
+                    total = float(data.get("total_spending", 0))
+                    average = float(data.get("average_spending", 0))
+                    highest = data.get("highest_category", "N/A")
+                    categories = data.get("category_spending", {})
+
+                    lines = [
+                        f"**Total spending:** ₹{total:,.2f}",
+                        f"**Average expense:** ₹{average:,.2f}",
+                        f"**Recorded expenses:** {data.get('expense_transactions', 0)}",
+                        f"**Highest spending category:** {highest}",
+                        "",
+                        "### Spending Breakdown",
+                        ""
+                    ]
+
+                    for category, amount in sorted(
+                        categories.items(),
+                        key=lambda item: item[1],
+                        reverse=True
+                    ):
+
+                        percentage = amount / total * 100 if total else 0
+
+                        lines.append(
+                            f"- **{category}:** ₹{amount:,.2f} "
+                            f"({percentage:.1f}%)"
+                        )
+
+                    if total > 0 and categories:
+
+                        lines.extend([
+                            "",
+                            "### Smart Insight",
+                            "",
+                            f"Your largest spending category is **{highest}**. "
+                            "Review expenses in this category to identify "
+                            "potential savings."
+                        ])
+
+                    formatted = "\n".join(lines)
+
+                else:
+
+                    formatted = json.dumps(
+                        data,
+                        indent=2,
+                        ensure_ascii=False
+                    )
 
             except (ValueError, TypeError, KeyError):
 

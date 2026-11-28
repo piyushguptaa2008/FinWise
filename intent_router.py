@@ -46,7 +46,20 @@ def identify_required_tools(question):
             r"\btotal expenses?\b",
             r"\bhow much.*\b(spent|spend|earned)\b",
             r"\bmonthly spending\b",
-            r"\bfinancial summary\b"
+            r"\bfinancial summary\b",
+
+            # Category-wise spending analysis
+            r"\bwhich category\b.*\b(most|highest|largest|costs?|spending|spend)\b",
+            r"\bwhich categories\b",
+            r"\b(category|categories)\b.*\b(highest|most|top|largest)\b",
+            r"\btop spending categor(?:y|ies)\b",
+            r"\bwhere\b.*\b(spend|spending)\b",
+            r"\bmost\b.*\b(spending|spent|expenses?)\b",
+            r"\bhighest spending\b",
+            r"\bbreakdown\b.*\bexpenses?\b",
+            r"\bexpenses?\b.*\bby category\b",
+            r"\bcategory[- ]wise spending\b",
+            r"\bshow.*\bmy expenses\b"
         ],
 
         "detect_subscriptions": [
@@ -84,7 +97,7 @@ def identify_required_tools(question):
             r"\bfinancial knowledge\b",
             r"\bbudgeting rule\b",
             r"\bfinancial advice\b",
-            r"50\s*/\s*30\s*/\s*20"
+            r"\b50\s*/\s*30\s*/\s*20\b"
         ]
     }
 
@@ -128,7 +141,11 @@ if __name__ == "__main__":
         "Show my recurring subscriptions",
         "Show all recurring expenses",
         "Calculate my remaining balance",
-        "Explain the 50/30/20 budgeting rule"
+        "Explain the 50/30/20 budgeting rule",
+        "Which category accounts for the most spending?",
+        "Where am I spending the most?",
+        "Show my expenses by category",
+        "Which category costs me the most?"
     ]
 
     for question in questions:

@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -208,7 +209,7 @@ color:{ink};padding:22px;border-radius:22px">
 
     st.divider()
 
-       # SMART ASSISTANT
+    # SMART ASSISTANT
 
     st.subheader("🤖 FinWise Assistant")
 
@@ -252,8 +253,8 @@ color:{ink};padding:22px;border-radius:22px">
     """)
 
     st.info(
-        "AI currently analyses a sample dataset, "
-        "not your personal recorded expenses."
+        "FinWise AI analyses your recorded expenses. "
+        "General financial questions can also use its knowledge base."
     )
 
     s.setdefault("insight_result", None)
@@ -266,9 +267,9 @@ color:{ink};padding:22px;border-radius:22px">
     questions = [
         "What is my November spending?",
         "Show my subscriptions.",
-        "Calculate my remaining balance.",
+        "Which category costs me the most?",
         "Explain the 50/30/20 budgeting rule.",
-        "Create a monthly budget plan with income 15000."
+        "Show my recurring expenses."
     ]
 
     for i, question in enumerate(questions):
@@ -305,12 +306,38 @@ color:{ink};padding:22px;border-radius:22px">
         with st.spinner("FinWise AI is analysing your request..."):
 
             try:
+
+                # Convert frontend expenses into backend format.
+                # Frontend expenses are positive.
+                # Backend expenses must be negative.
+
+                user_transactions = pd.DataFrame(
+                    [
+                        {
+                            "date": expense.get("Date"),
+                            "description": expense.get("Name", ""),
+                            "category": expense.get("Category", "Other"),
+                            "amount": -abs(float(expense.get("Amount", 0)))
+                        }
+                        for expense in s.get("expenses", [])
+                        if expense.get("Amount") is not None
+                    ],
+                    columns=[
+                        "date",
+                        "description",
+                        "category",
+                        "amount"
+                    ]
+                )
+
                 s.insight_result = run_agent(
                     new_question,
-                    return_trace=True
+                    return_trace=True,
+                    transactions=user_transactions
                 )
 
             except Exception as error:
+
                 st.error(
                     f"AI request failed: {type(error).__name__}"
                 )
@@ -354,7 +381,6 @@ color:{ink};padding:22px;border-radius:22px">
             st.write("Knowledge Sources:")
             st.write(result.get("knowledge_sources", []))
 
-
     # HUMAN APPROVAL SYSTEM
 
     if "approval_manager" not in s:
@@ -373,6 +399,7 @@ color:{ink};padding:22px;border-radius:22px">
     # CREATE PROPOSAL ONLY ON SUBMISSION
 
     if new_question:
+
         s.insight_proposal_id = None
 
         if can_approve:
@@ -382,7 +409,7 @@ color:{ink};padding:22px;border-radius:22px">
                 details={
                     "question": s.insight_question,
                     "answer": result["answer"],
-                    "dataset": "Sample Dataset"
+                    "dataset": "User Recorded Expenses"
                 }
             )
 
@@ -469,6 +496,7 @@ color:{ink};padding:22px;border-radius:22px">
                 st.write(proposal["details"]["answer"])
 
                 st.divider()
+
     st.caption(
-        "Powered by FinWise Agentic AI • Sample Dataset"
+        "Powered by FinWise Agentic AI • Your Recorded Expenses"
     )
