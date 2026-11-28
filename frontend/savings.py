@@ -2,7 +2,7 @@
 import streamlit as st
 import sqlite3
 from html import escape
-from storage import initialize_database
+from storage import initialize_database, get_db_path
 import streamlit.components.v1 as components
 from pathlib import Path
 import re
@@ -12,7 +12,7 @@ import re
 def savings_connection():
     if "savings_connection" not in st.session_state:
         st.session_state.savings_connection = sqlite3.connect(
-            ":memory:", check_same_thread=False
+            get_db_path(), check_same_thread=False
         )
     return st.session_state.savings_connection
 
