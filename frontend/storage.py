@@ -1,17 +1,27 @@
+import tempfile
 
 import sqlite3
 import json
 import streamlit as st
 from pathlib import Path
 
-DB_PATH = Path.home() / ".finwise" / "finwise.db"
+def get_db_path():
+    if "_finwise_tempdir" not in st.session_state:
+        st.session_state["_finwise_tempdir"] = (
+            tempfile.TemporaryDirectory(prefix="finwise_")
+        )
+
+    return Path(
+        st.session_state["_finwise_tempdir"].name
+    ) / "finwise.db"
+
 
 
 def initialize_database():
 
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    get_db_path().parent.mkdir(parents=True, exist_ok=True)
 
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(get_db_path()) as conn:
 
         conn.execute("""
             CREATE TABLE IF NOT EXISTS finance_data (
@@ -29,7 +39,7 @@ def load_data():
 
     initialize_database()
 
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(get_db_path()) as conn:
 
         row = conn.execute("""
             SELECT expenses, budget
@@ -61,7 +71,7 @@ def save_data():
 
     budget = st.session_state.monthly_budget
 
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(get_db_path()) as conn:
 
         conn.execute("""
             INSERT OR REPLACE INTO finance_data

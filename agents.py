@@ -382,10 +382,41 @@ def _run_agent(question, return_trace=False):
                 )
 
                 if name == "analyze_transactions":
+                    total = float(data.get("total_spending", 0))
+                    count = data.get("expense_transactions", 0)
+                    categories = data.get("category_spending", {})
+                    highest = data.get("highest_category")
+                    period = data.get("period", "All transactions")
 
-                    label += (
-                        " (" + data["period"] + ")"
+                    if total <= 0 or not categories:
+                        sections.append(
+                            "You haven't recorded any expenses "
+                            "for this period yet."
+                        )
+                        continue
+
+                    amount = float(categories.get(highest, 0))
+                    percent = amount / total * 100
+
+                    breakdown = "\n".join(
+                        f"- {category}: ₹{value:,.2f}"
+                        for category, value in categories.items()
                     )
+
+                    sections.append(
+                        f"Here's what I found in your spending!\n\n"
+                        f"You have spent ₹{total:,.2f} across "
+                        f"{count} expense transactions.\n\n"
+                        f"Your highest spending category is "
+                        f"**{highest}**, with ₹{amount:,.2f} spent. "
+                        f"That's {percent:.1f}% of your total expenses.\n\n"
+                        f"**Spending breakdown:**\n{breakdown}\n\n"
+                        f"**My suggestion:** Review your {highest} "
+                        "expenses and look for unnecessary costs "
+                        "to improve your savings.\n\n"
+                        f"Analysis period: {period}."
+                    )
+                    continue
 
                 formatted = json.dumps(
                     data,

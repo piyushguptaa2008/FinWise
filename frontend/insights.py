@@ -204,6 +204,24 @@ color:{ink};padding:22px;border-radius:22px">
     st.subheader("🤖 FinWise Assistant")
 
     def generate_answer(question):
+        try:
+            from frontend.ai_adapter import get_ai_answer
+
+            result = get_ai_answer(question, s.expenses)
+            answer = result.get("answer")
+
+            if not answer:
+                raise ValueError("Empty AI response")
+
+            st.caption("AI-generated response")
+            return answer
+
+        except Exception as e:
+            print("AI error:", type(e).__name__)
+            st.caption("AI unavailable - using rule-based backup")
+            return generate_fallback(question)
+
+    def generate_fallback(question):
 
         q = question.lower()
 
@@ -342,8 +360,8 @@ color:{ink};padding:22px;border-radius:22px">
             st.write(s.insight_question)
 
         with st.chat_message("assistant"):
-            st.write(
+            st.markdown(
                 generate_answer(s.insight_question)
             )
 
-    st.caption("FinWise uses rule-based financial insights.")
+    st.caption("FinWise AI Assistant")

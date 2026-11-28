@@ -2,7 +2,7 @@
 import streamlit as st
 import sqlite3
 from html import escape
-from storage import DB_PATH, initialize_database
+from storage import get_db_path, initialize_database
 import streamlit.components.v1 as components
 from pathlib import Path
 import re
@@ -23,7 +23,7 @@ def show_savings():
 
     # CREATE SAVINGS DATABASE TABLE
 
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(get_db_path()) as conn:
 
         conn.execute("""
             CREATE TABLE IF NOT EXISTS savings_goals (
@@ -133,7 +133,7 @@ def show_savings():
 
                 if name.strip():
 
-                    with sqlite3.connect(DB_PATH) as conn:
+                    with sqlite3.connect(get_db_path()) as conn:
 
                         conn.execute("""
                             INSERT INTO savings_goals
@@ -151,7 +151,7 @@ def show_savings():
 
     # LOAD SAVINGS GOALS
 
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(get_db_path()) as conn:
 
         goals = conn.execute("""
             SELECT id, name, target, saved
@@ -194,7 +194,7 @@ def show_savings():
 
                 if add:
 
-                    with sqlite3.connect(DB_PATH) as conn:
+                    with sqlite3.connect(get_db_path()) as conn:
 
                         goal = conn.execute("""
                             SELECT target, saved
@@ -249,7 +249,7 @@ def show_savings():
     from pathlib import Path
     import streamlit.components.v1 as components
 
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(get_db_path()) as conn:
         saved, target = conn.execute("""
             SELECT COALESCE(SUM(saved), 0),
                    COALESCE(SUM(target), 0)
@@ -338,7 +338,7 @@ def show_savings():
         st.success("Money added to your Gullak!")
 
 
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(get_db_path()) as conn:
 
         goals = conn.execute("""
             SELECT id, name, target, saved
