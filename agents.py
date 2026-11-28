@@ -1,3 +1,5 @@
+from transaction_context import transaction_context
+
 
 import re
 import json
@@ -175,7 +177,7 @@ def verify_tool_result(question, name, output):
         return False
 
 
-def run_agent(question, return_trace=False):
+def _run_agent(question, return_trace=False):
 
     required_tools = identify_required_tools(question)
 
@@ -455,3 +457,16 @@ def run_agent(question, return_trace=False):
         }
 
     return answer
+
+
+
+def run_agent(
+    question,
+    return_trace=False,
+    transactions=None
+):
+    with transaction_context(transactions):
+        return _run_agent(
+            question,
+            return_trace=return_trace
+        )

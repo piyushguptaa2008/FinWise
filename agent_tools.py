@@ -1,3 +1,4 @@
+import math
 
 import json
 import calendar
@@ -12,12 +13,12 @@ from backend.recurring import detect_recurring_expenses
 from backend.anomaly import detect_anomalies
 
 
-DATA_FILE = "data/transactions.csv"
+from transaction_context import get_transaction_source
 
 
 def get_transactions():
 
-    df = load_transactions(DATA_FILE)
+    df = load_transactions(get_transaction_source())
 
     return categorize_transactions(df)
 
@@ -124,11 +125,11 @@ def create_budget_plan(monthly_income: float) -> str:
     """Generate a monthly budget using the user's
     monthly income and actual transaction data."""
 
-    if monthly_income <= 0:
+    if not math.isfinite(monthly_income) or monthly_income <= 0:
         raise ValueError(
             "Monthly income must be greater than zero."
         )
 
-    result = run_finwise(DATA_FILE, monthly_income)
+    result = run_finwise(get_transaction_source(), monthly_income)
 
     return json.dumps(result["budget"], default=str)

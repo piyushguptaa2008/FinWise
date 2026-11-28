@@ -15,7 +15,7 @@ from agent_tools import (
 )
 
 
-DATA_FILE = "data/transactions.csv"
+from transaction_context import get_transaction_source
 
 
 BACKEND_TOOLS = {
@@ -57,7 +57,7 @@ def extract_monthly_income(question):
 
 def get_dataset_totals(question=""):
 
-    df = load_transactions(DATA_FILE)
+    df = load_transactions(get_transaction_source())
 
     period = extract_period(question)
 
