@@ -340,7 +340,7 @@ def show_savings():
 
     components.html(html, height=370, scrolling=False)
 
-    
+
     if achieved:
 
         confetti = ""

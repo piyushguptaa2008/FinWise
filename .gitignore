@@ -15,3 +15,5 @@ approved_plans/
 test_cloud_model.py
 test_cloud_tools.py
 *.gguf
+# Local Python environment
+.venv-team/

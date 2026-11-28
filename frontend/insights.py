@@ -9,7 +9,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from agents import run_agent
+from frontend.ai_adapter import get_ai_answer
 from approval import ApprovalManager
 
 
@@ -252,9 +252,9 @@ color:{ink};padding:22px;border-radius:22px">
     """)
 
     st.info(
-        "AI currently analyses a sample dataset, "
-        "not your personal recorded expenses."
-    )
+    "AI analyses your recorded expenses "
+    "to provide personalised financial insights."
+)
 
     s.setdefault("insight_result", None)
     s.setdefault("insight_question", "")
@@ -305,11 +305,10 @@ color:{ink};padding:22px;border-radius:22px">
         with st.spinner("FinWise AI is analysing your request..."):
 
             try:
-                s.insight_result = run_agent(
-                    new_question,
-                    return_trace=True
-                )
-
+                s.insight_result = get_ai_answer(
+    new_question,
+    s.expenses
+)
             except Exception as error:
                 st.error(
                     f"AI request failed: {type(error).__name__}"
@@ -325,7 +324,7 @@ color:{ink};padding:22px;border-radius:22px">
             st.write(s.insight_question)
 
         with st.chat_message("assistant"):
-            st.write(result.get("answer", ""))
+            st.markdown(result.get("answer", ""))
 
         # VALIDATION STATUS
 
@@ -382,7 +381,7 @@ color:{ink};padding:22px;border-radius:22px">
                 details={
                     "question": s.insight_question,
                     "answer": result["answer"],
-                    "dataset": "Sample Dataset"
+                    "dataset": "User Recorded Expenses"
                 }
             )
 
@@ -470,5 +469,5 @@ color:{ink};padding:22px;border-radius:22px">
 
                 st.divider()
     st.caption(
-        "Powered by FinWise Agentic AI • Sample Dataset"
+        "Powered by FinWise Agentic AI"
     )

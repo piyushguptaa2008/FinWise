@@ -116,6 +116,13 @@ def identify_required_tools(question):
         if "analyze_transactions" not in required_tools:
             required_tools.append("analyze_transactions")
 
+    if re.search(
+        r"\b(highest spending|spending habits|spending summary|spending categories|spending the most|reduce my expenses)\b",
+        question.lower()
+    ):
+        if "analyze_transactions" not in required_tools:
+            required_tools.append("analyze_transactions")
+
     return required_tools
 
 
