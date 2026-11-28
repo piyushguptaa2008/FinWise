@@ -1,5 +1,23 @@
+import math
+from numbers import Real
+
 
 def generate_budget(monthly_income, total_spending):
+
+    if (
+        isinstance(monthly_income, bool)
+        or not isinstance(monthly_income, Real)
+        or not math.isfinite(monthly_income)
+    ):
+        raise ValueError("Income must be a valid number")
+
+    if (
+        isinstance(total_spending, bool)
+        or not isinstance(total_spending, Real)
+        or not math.isfinite(total_spending)
+    ):
+        raise ValueError("Total spending must be a valid number")
+
     if monthly_income <= 0:
         raise ValueError("Income must be greater than zero")
 
