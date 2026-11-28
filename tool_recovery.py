@@ -1,6 +1,6 @@
-
 import re
 import math
+import json
 
 from rag import retrieve_context
 
@@ -8,7 +8,8 @@ from agent_tools import (
     analyze_transactions,
     detect_subscriptions,
     identify_unusual_expenses,
-    create_budget_plan
+    create_budget_plan,
+    calculate_remaining_budget
 )
 
 
@@ -58,9 +59,34 @@ def recover_financial_knowledge(question):
     )
 
 
+def is_valid_result(result):
+
+    if result is None:
+        return False
+
+    try:
+
+        data = (
+            json.loads(result)
+            if isinstance(result, str)
+            else result
+        )
+
+        if isinstance(data, dict) and "error" in data:
+            return False
+
+    except (ValueError, TypeError):
+        pass
+
+    return True
+
+
 def recover_missing_tools(question, missing_tools):
 
     recovered = {}
+
+    # Remove frontend instructions from the actual question
+    question = question.rsplit("User question: ", 1)[-1]
 
     income = extract_monthly_income(question)
 
@@ -68,7 +94,7 @@ def recover_missing_tools(question, missing_tools):
 
         try:
 
-            # RAG recovery does not require income
+            # RAG recovery
             if name == "search_financial_knowledge":
 
                 result = recover_financial_knowledge(
@@ -81,19 +107,43 @@ def recover_missing_tools(question, missing_tools):
 
                 continue
 
-            # Backend tools require income
+            # Remaining budget recovery
+            # Uses live frontend data without requiring income
+            if name == "calculate_remaining_budget":
+
+                result = calculate_remaining_budget.invoke({})
+
+                if is_valid_result(result):
+
+                    recovered[name] = result
+                    print("Recovered tool:", name)
+
+                else:
+
+                    print("Budget recovery failed:", result)
+
+                continue
+
+            # Backend tools requiring monthly income
             if name in BACKEND_TOOLS:
 
                 if income is None:
+
+                    print("Missing monthly income:", name)
                     continue
 
                 result = BACKEND_TOOLS[name].invoke({
                     "monthly_income": income
                 })
 
-                recovered[name] = result
+                if is_valid_result(result):
 
-                print("Recovered tool:", name)
+                    recovered[name] = result
+                    print("Recovered tool:", name)
+
+                else:
+
+                    print("Invalid tool result:", name)
 
         except Exception as error:
 

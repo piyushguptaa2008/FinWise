@@ -2,11 +2,18 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
+from agent_bridge import ask_finwise
+from approval import ApprovalManager
 
 
 def show_insights():
 
     s = st.session_state
+
+    if "approval_manager" not in s:
+        s.approval_manager = ApprovalManager()
+
+    manager = s.approval_manager
 
     s.setdefault("expenses", [])
     s.setdefault("monthly_budget", 5000.0)
@@ -50,6 +57,16 @@ def show_insights():
 [data-testid="stMain"] h2,
 [data-testid="stMain"] h3 {{
     color: {ink} !important;
+}}
+
+[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"],
+[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] * {{
+    color: {ink} !important;
+}}
+
+[data-testid="stChatMessage"] {{
+    background: {surface} !important;
+    border-radius: 18px !important;
 }}
 
 [data-testid="stMain"] input {{
@@ -199,56 +216,9 @@ color:{ink};padding:22px;border-radius:22px">
 
     st.divider()
 
-    # SMART ASSISTANT
+    # AI-POWERED SMART ASSISTANT
 
     st.subheader("🤖 FinWise Assistant")
-
-    def generate_answer(question):
-
-        q = question.lower()
-
-        if "category" in q or "most" in q:
-
-            if spending.empty:
-                return "You haven't recorded expenses this month."
-
-            return (
-                f"Your highest spending category is "
-                f"{top_category}, with ₹{top_amount:,.2f} spent."
-            )
-
-        elif "budget" in q or "remaining" in q:
-
-            return (
-                f"Your monthly budget is ₹{budget:,.2f}. "
-                f"Your remaining budget is ₹{remaining:,.2f}."
-            )
-
-        elif "save" in q or "saving" in q:
-
-            if remaining <= 0:
-                return "Review your budget and upcoming expenses first."
-
-            return (
-                f"You have ₹{remaining:,.2f} remaining "
-                "in your budget. Consider essential expenses "
-                "before deciding how much to save."
-            )
-
-        elif "spend" in q or "expense" in q or "summary" in q:
-
-            return (
-                f"You have spent ₹{total:,.2f} "
-                f"across {len(monthly)} transactions this month."
-            )
-
-        else:
-
-            return (
-                "I can currently answer questions about "
-                "your expenses, budget, spending categories "
-                "and savings planning."
-            )
 
     st.html(f"""
 <div class="insight-card">
@@ -260,9 +230,6 @@ color:{ink};padding:22px;border-radius:22px">
 
     st.caption("Suggested questions")
 
-    
-    
-    
     st.html(f"""
 <style>
 
@@ -302,13 +269,16 @@ color:{ink};padding:22px;border-radius:22px">
 </style>
 """)
 
-
     questions = [
         "Where am I spending the most?",
         "How much budget do I have left?",
         "How can I plan my savings?",
         "Show my spending summary."
     ]
+
+    pending_question = None
+
+    # SUGGESTED QUESTION BUTTONS
 
     for i, question in enumerate(questions):
 
@@ -318,7 +288,9 @@ color:{ink};padding:22px;border-radius:22px">
             use_container_width=True
         ):
 
-            s.insight_question = question
+            pending_question = question
+
+    # CUSTOM QUESTION INPUT
 
     with st.form("assistant_form", clear_on_submit=True):
 
@@ -334,16 +306,174 @@ color:{ink};padding:22px;border-radius:22px">
 
         if submitted and question.strip():
 
-            s.insight_question = question.strip()
+            pending_question = question.strip()
+
+    # CONNECT TO ACTUAL AI AGENT
+
+    if pending_question:
+
+        s.insight_question = pending_question
+
+        s.pop("insight_result", None)
+        s.pop("insight_error", None)
+
+        with st.spinner("FinWise is thinking..."):
+
+            try:
+
+                s.insight_result = ask_finwise(
+                    s.insight_question
+                )
+
+                result = s.insight_result
+
+                if (
+                    result.get("validated") is True
+                    and "create_budget_plan"
+                    in result.get("tools_used", [])
+                ):
+
+                    manager.create_proposal(
+                        "Save budget plan",
+                        {
+                            "request": s.insight_question,
+                            "recommendation": result["answer"]
+                        }
+                    )
+
+            except Exception as e:
+
+                s.insight_error = str(e)
+
+                print("FinWise Agent Error:", str(e))
+
+    # DISPLAY AI RESPONSE
 
     if "insight_question" in s:
 
         with st.chat_message("user"):
+
             st.write(s.insight_question)
 
         with st.chat_message("assistant"):
-            st.write(
-                generate_answer(s.insight_question)
-            )
 
-    st.caption("FinWise uses rule-based financial insights.")
+            if "insight_result" in s:
+
+                result = s.insight_result
+
+                st.markdown(result["answer"])
+
+                tools_used = result.get("tools_used", [])
+
+                if tools_used:
+
+                    with st.expander("Agent Activity"):
+
+                        for tool_name in tools_used:
+
+                            st.write(
+                                "✓ " + tool_name.replace("_", " ").title()
+                            )
+
+                if result.get("validated") is False:
+
+                    st.warning(
+                        "Some required agent checks could not be completed."
+                    )
+
+            elif "insight_error" in s:
+
+                st.error(
+                    "Unable to generate a response. Please try again."
+                )
+
+    # HUMAN APPROVAL
+
+    pending = manager.get_pending()
+
+    if pending:
+
+        st.divider()
+        st.subheader("Human Approval Required")
+
+        st.info(
+            "Review the proposed budget before saving it."
+        )
+
+        for proposal in pending:
+
+            proposal_id = proposal["id"]
+
+            with st.container(border=True):
+
+                st.markdown(
+                    "**Status: Pending approval**"
+                )
+
+                st.markdown(
+                    proposal["details"]["recommendation"]
+                )
+
+                approve_col, reject_col = st.columns(2)
+
+                if approve_col.button(
+                    "Approve Plan",
+                    key=f"approve_{proposal_id}",
+                    use_container_width=True
+                ):
+
+                    try:
+
+                        response = manager.approve(proposal_id)
+
+                        if "error" in response:
+                            st.error(response["error"])
+
+                        else:
+                            s.approval_notice = "Budget plan approved and saved."
+                            st.rerun()
+
+                    except Exception as e:
+                        st.error(f"Approval failed: {e}")
+
+                if reject_col.button(
+                    "Reject Plan",
+                    key=f"reject_{proposal_id}",
+                    use_container_width=True
+                ):
+
+                    response = manager.reject(proposal_id)
+
+                    if "error" in response:
+                        st.error(response["error"])
+
+                    else:
+                        s.approval_notice = "Budget proposal rejected."
+                        st.rerun()
+
+    if "approval_notice" in s:
+        st.info(s.pop("approval_notice"))
+
+    # APPROVAL HISTORY
+
+    history = manager.get_history()
+
+    if history:
+
+        with st.expander("Approval History"):
+
+            for item in reversed(history):
+
+                status = item["status"].title()
+
+                if item["status"] == "approved":
+                    st.success(f"Approved: {item['action']}")
+
+                else:
+                    st.warning(f"{status}: {item['action']}")
+
+                st.caption(item.get("reviewed_at", ""))
+
+    st.caption(
+        "FinWise uses AI-powered financial insights and RAG."
+    )

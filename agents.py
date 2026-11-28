@@ -14,7 +14,8 @@ from agent_tools import (
     analyze_transactions,
     detect_subscriptions,
     identify_unusual_expenses,
-    create_budget_plan
+    create_budget_plan,
+    calculate_remaining_budget
 )
 
 
@@ -42,18 +43,114 @@ def calculate_remaining_balance(
     return round(income - expenses, 2)
 
 
-def create_finwise_agent():
+
+def format_financial_data(data, parent_key=""):
+
+    if isinstance(data, list):
+
+        if not data:
+            return "No records found."
+
+        return "\n\n".join(
+            format_financial_data(item, parent_key)
+            for item in data
+        )
+
+    if isinstance(data, dict):
+
+        if not data:
+            return "No records found."
+
+        lines = []
+
+        for key, value in data.items():
+
+            label = key.replace("_", " ").title()
+
+            if isinstance(value, (dict, list)):
+
+                lines.append(
+                    f"\\n**{label}**\\n".replace("\\n", "\n")
+                )
+
+                lines.append(
+                    format_financial_data(value, key)
+                )
+
+            elif isinstance(value, bool):
+
+                lines.append(f"- **{label}:** {value}")
+
+            elif isinstance(value, (int, float)):
+
+                money_words = (
+                    "amount", "income", "budget",
+                    "spending", "balance", "saving",
+                    "expense", "cost", "price"
+                )
+
+                count_words = (
+                    "count", "transactions", "frequency",
+                    "percentage", "days", "months"
+                )
+
+                is_money = (
+                    any(word in key.lower() for word in money_words)
+                    or parent_key == "category_spending"
+                )
+
+                is_count = any(
+                    word in key.lower()
+                    for word in count_words
+                )
+
+                if is_money and not is_count:
+                    value = f"₹{value:,.2f}"
+
+                lines.append(f"- **{label}:** {value}")
+
+            else:
+
+                lines.append(f"- **{label}:** {value}")
+
+        return "\n".join(lines)
+
+    return str(data)
+
+
+def format_financial_result(name, raw):
+
+    try:
+        data = json.loads(raw) if isinstance(raw, str) else raw
+
+    except (ValueError, TypeError):
+        return str(raw)
+
+    if name == "detect_subscriptions" and not data:
+        return "No recurring expenses were detected."
+
+    if name == "identify_unusual_expenses" and not data:
+        return "No unusual expenses were detected."
+
+    return format_financial_data(data)
+
+
+def create_finwise_agent(required_tools=None):
 
     model = get_model()
 
     tools = [
         search_financial_knowledge,
         calculate_remaining_balance,
+        calculate_remaining_budget,
         analyze_transactions,
         detect_subscriptions,
         identify_unusual_expenses,
         create_budget_plan
     ]
+
+    if set(required_tools or []) == {"search_financial_knowledge"}:
+        tools = [search_financial_knowledge]
 
     return create_react_agent(model, tools=tools)
 
@@ -61,7 +158,7 @@ def create_finwise_agent():
 def run_agent(question, return_trace=False):
 
     required_tools = identify_required_tools(question)
-    agent = create_finwise_agent()
+    agent = create_finwise_agent(required_tools)
 
     system_prompt = (
         "You are FinWise, an agentic personal finance assistant. "
@@ -74,6 +171,10 @@ def run_agent(question, return_trace=False):
         "Provide educational budgeting guidance in INR. "
         "Never perform financial actions without human approval. "
         "Do not repeat successful tool calls. "
+        "Use only relevant tools. "
+        "For remaining monthly budget questions, use calculate_remaining_budget. "
+        "Remaining budget covers the current calendar month. "
+        "Never confuse monthly budget with monthly income. "
         "After receiving tool results, provide a final answer."
     )
 
@@ -102,6 +203,23 @@ def run_agent(question, return_trace=False):
 
             if getattr(message, "status", None) == "error":
                 continue
+
+            if message.name == "calculate_remaining_budget":
+                try:
+                    data = json.loads(message.content)
+                    if not isinstance(data, dict) or "error" in data:
+                        continue
+                    if not all(
+                        key in data for key in (
+                            "monthly_budget",
+                            "monthly_spending",
+                            "remaining_budget",
+                            "status"
+                        )
+                    ):
+                        continue
+                except (ValueError, TypeError):
+                    continue
 
             if message.name == "calculate_remaining_balance":
 
@@ -198,6 +316,19 @@ def run_agent(question, return_trace=False):
                 f"Your remaining balance is ₹{balance:,.2f}."
             )
 
+        if "calculate_remaining_budget" in tool_results:
+
+            raw = tool_results["calculate_remaining_budget"]
+            data = json.loads(raw) if isinstance(raw, str) else raw
+
+            sections.append(
+                "### Remaining Monthly Budget\n\n"
+                f"- **Monthly budget:** ₹{data['monthly_budget']:,.2f}\n"
+                f"- **Monthly spending:** ₹{data['monthly_spending']:,.2f}\n"
+                f"- **Remaining budget:** ₹{data['remaining_budget']:,.2f}\n"
+                f"- **Status:** {data['status']}"
+            )
+
         # Grounded backend results
         labels = {
             "analyze_transactions":
@@ -214,23 +345,13 @@ def run_agent(question, return_trace=False):
 
             if name in tool_results:
 
-                raw = tool_results[name]
-
-                try:
-                    data = json.loads(raw)
-
-                    formatted = json.dumps(
-                        data,
-                        indent=2,
-                        ensure_ascii=False
-                    )
-
-                except (ValueError, TypeError):
-
-                    formatted = str(raw)
+                formatted = format_financial_result(
+                    name,
+                    tool_results[name]
+                )
 
                 sections.append(
-                    label + ":\n" + formatted
+                    f"### {label}\n\n{formatted}"
                 )
 
         # Grounded RAG results
