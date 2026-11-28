@@ -2,10 +2,19 @@
 import streamlit as st
 import sqlite3
 from html import escape
-from storage import get_db_path, initialize_database
+from storage import initialize_database
 import streamlit.components.v1 as components
 from pathlib import Path
 import re
+
+
+
+def savings_connection():
+    if "savings_connection" not in st.session_state:
+        st.session_state.savings_connection = sqlite3.connect(
+            ":memory:", check_same_thread=False
+        )
+    return st.session_state.savings_connection
 
 
 def show_savings():
@@ -23,7 +32,7 @@ def show_savings():
 
     # CREATE SAVINGS DATABASE TABLE
 
-    with sqlite3.connect(get_db_path()) as conn:
+    with savings_connection() as conn:
 
         conn.execute("""
             CREATE TABLE IF NOT EXISTS savings_goals (
@@ -133,7 +142,7 @@ def show_savings():
 
                 if name.strip():
 
-                    with sqlite3.connect(get_db_path()) as conn:
+                    with savings_connection() as conn:
 
                         conn.execute("""
                             INSERT INTO savings_goals
@@ -151,7 +160,7 @@ def show_savings():
 
     # LOAD SAVINGS GOALS
 
-    with sqlite3.connect(get_db_path()) as conn:
+    with savings_connection() as conn:
 
         goals = conn.execute("""
             SELECT id, name, target, saved
@@ -194,7 +203,7 @@ def show_savings():
 
                 if add:
 
-                    with sqlite3.connect(get_db_path()) as conn:
+                    with savings_connection() as conn:
 
                         goal = conn.execute("""
                             SELECT target, saved
@@ -249,7 +258,7 @@ def show_savings():
     from pathlib import Path
     import streamlit.components.v1 as components
 
-    with sqlite3.connect(get_db_path()) as conn:
+    with savings_connection() as conn:
         saved, target = conn.execute("""
             SELECT COALESCE(SUM(saved), 0),
                    COALESCE(SUM(target), 0)
@@ -331,14 +340,104 @@ def show_savings():
 
     components.html(html, height=370, scrolling=False)
 
+
     if achieved:
-        st.balloons()
-        st.success("Savings goal achieved!")
+
+        confetti = ""
+
+        colors = [
+            "#B6CA91",
+            "#DDBD64",
+            "#B6A2D2",
+            "#DCA1AA"
+        ]
+
+        for i in range(45):
+            confetti += f"""
+            <span style="
+                position:absolute;
+                top:-20px;
+                left:{(i * 37) % 100}%;
+                width:9px;
+                height:14px;
+                background:{colors[i % 4]};
+                border-radius:2px;
+                animation:fwCelebrationFall
+                2.5s ease-in {(i % 10) * 0.1}s both;
+            "></span>
+            """
+
+        st.html(f"""
+        <style>
+            @keyframes fwCelebrationFall {{
+                from {{
+                    transform:translateY(0) rotate(0deg);
+                    opacity:1;
+                }}
+                to {{
+                    transform:translateY(300px) rotate(540deg);
+                    opacity:0;
+                }}
+            }}
+
+            @keyframes fwCelebrationGlow {{
+                0%, 100% {{
+                    box-shadow:0 0 10px #BCD49A;
+                }}
+                50% {{
+                    box-shadow:0 0 35px #A8C48B;
+                }}
+            }}
+
+            @media (prefers-reduced-motion: reduce) {{
+                .fw-celebration,
+                .fw-celebration span {{
+                    animation:none !important;
+                }}
+            }}
+        </style>
+
+        <div class="fw-celebration" style="
+            position:relative;
+            overflow:hidden;
+            background:#E4ECD5;
+            padding:35px;
+            border-radius:25px;
+            text-align:center;
+            color:#394536;
+            animation:fwCelebrationGlow 2s ease 2;
+        ">
+            {confetti}
+
+            <div style="font-size:50px;">🏆</div>
+
+            <p style="letter-spacing:4px;color:#627A4E;">
+                ACHIEVEMENT UNLOCKED
+            </p>
+
+            <h1 style="color:#394536;">
+                Goal achieved!
+            </h1>
+
+            <p style="color:#627A4E;">
+                Your small steps made a big difference.
+            </p>
+
+            <h1 style="color:#48623D;">100%</h1>
+
+            <div style="
+                background:#A8C48B;
+                height:10px;
+                border-radius:20px;
+            "></div>
+        </div>
+        """)
+
     elif deposited:
         st.success("Money added to your Gullak!")
 
 
-    with sqlite3.connect(get_db_path()) as conn:
+    with savings_connection() as conn:
 
         goals = conn.execute("""
             SELECT id, name, target, saved

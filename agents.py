@@ -381,6 +381,35 @@ def _run_agent(question, return_trace=False):
                     else raw
                 )
 
+                if name == "create_budget_plan" and isinstance(data, dict):
+
+                    income = float(data["monthly_income"])
+                    needs = float(data["needs_budget"])
+                    wants = float(data["wants_budget"])
+                    savings = float(data["savings_goal"])
+                    spending = float(data["total_spending"])
+                    remaining = float(data["remaining_balance"])
+                    status = data.get("budget_status", "Unknown")
+
+                    sections.append(
+                        f"Here's your personalized monthly budget plan!\n\n"
+                        f"Based on your monthly income of ₹{income:,.2f}, "
+                        "I've prepared a budget using the 50/30/20 rule.\n\n"
+                        f"**Your monthly budget allocation:**\n\n"
+                        f"- Essential needs (50%): ₹{needs:,.2f}\n"
+                        f"- Lifestyle and wants (30%): ₹{wants:,.2f}\n"
+                        f"- Savings (20%): ₹{savings:,.2f}\n\n"
+                        f"**Your current financial position:**\n\n"
+                        f"You have spent ₹{spending:,.2f} so far, "
+                        f"leaving ₹{remaining:,.2f} from your income.\n\n"
+                        f"**Budget status:** {status}\n\n"
+                        "**My suggestion:** Prioritize essential expenses, "
+                        "track unnecessary spending and work towards "
+                        f"your ₹{savings:,.2f} monthly savings goal.\n\n"
+                        "Review this budget plan before approving it."
+                    )
+                    continue
+
                 if name == "analyze_transactions":
                     total = float(data.get("total_spending", 0))
                     count = data.get("expense_transactions", 0)

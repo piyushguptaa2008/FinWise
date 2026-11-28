@@ -1,7 +1,16 @@
-
 import streamlit as st
 import pandas as pd
 from datetime import date
+from pathlib import Path
+import sys
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from frontend.ai_adapter import get_ai_answer
+from approval import ApprovalManager
 
 
 def show_insights():
@@ -199,133 +208,67 @@ color:{ink};padding:22px;border-radius:22px">
 
     st.divider()
 
-    # SMART ASSISTANT
+       # SMART ASSISTANT
 
     st.subheader("🤖 FinWise Assistant")
 
-    def generate_answer(question):
-        try:
-            from frontend.ai_adapter import get_ai_answer
-
-            result = get_ai_answer(question, s.expenses)
-            answer = result.get("answer")
-
-            if not answer:
-                raise ValueError("Empty AI response")
-
-            st.caption("AI-generated response")
-            return answer
-
-        except Exception as e:
-            print("AI error:", type(e).__name__)
-            st.caption("AI unavailable - using rule-based backup")
-            return generate_fallback(question)
-
-    def generate_fallback(question):
-
-        q = question.lower()
-
-        if "category" in q or "most" in q:
-
-            if spending.empty:
-                return "You haven't recorded expenses this month."
-
-            return (
-                f"Your highest spending category is "
-                f"{top_category}, with ₹{top_amount:,.2f} spent."
-            )
-
-        elif "budget" in q or "remaining" in q:
-
-            return (
-                f"Your monthly budget is ₹{budget:,.2f}. "
-                f"Your remaining budget is ₹{remaining:,.2f}."
-            )
-
-        elif "save" in q or "saving" in q:
-
-            if remaining <= 0:
-                return "Review your budget and upcoming expenses first."
-
-            return (
-                f"You have ₹{remaining:,.2f} remaining "
-                "in your budget. Consider essential expenses "
-                "before deciding how much to save."
-            )
-
-        elif "spend" in q or "expense" in q or "summary" in q:
-
-            return (
-                f"You have spent ₹{total:,.2f} "
-                f"across {len(monthly)} transactions this month."
-            )
-
-        else:
-
-            return (
-                "I can currently answer questions about "
-                "your expenses, budget, spending categories "
-                "and savings planning."
-            )
-
     st.html(f"""
-<div class="insight-card">
-    <b>✦ FinWise Intelligence</b>
-    <p>Hello! Ask me about your recorded
-    spending, budget or financial habits.</p>
-</div>
-""")
+    <div class="insight-card">
+        <b>✦ FinWise Intelligence</b>
+        <p>Ask me about spending, subscriptions,
+        budgeting and financial knowledge.</p>
+    </div>
+
+    <style>
+    [data-testid="stMain"] .stButton button {{
+        background: {green} !important;
+        color: {ink} !important;
+        border: 1px solid #a8b99b !important;
+        border-radius: 16px !important;
+        min-height: 55px;
+        text-align: left;
+        justify-content: flex-start;
+        padding: 15px 22px;
+        transition: all 0.3s ease;
+    }}
+
+    [data-testid="stMain"] .stButton button p {{
+        color: {ink} !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+    }}
+
+    [data-testid="stMain"] .stButton button:hover {{
+        background: {purple} !important;
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px #91b47530;
+    }}
+
+    [data-testid="stMain"] input::placeholder {{
+        color: {ink} !important;
+        opacity: 0.65;
+    }}
+    </style>
+    """)
+
+    st.info(
+    "AI analyses your recorded expenses "
+    "to provide personalised financial insights."
+)
+
+    s.setdefault("insight_result", None)
+    s.setdefault("insight_question", "")
+
+    new_question = None
 
     st.caption("Suggested questions")
 
-    
-    
-    
-    st.html(f"""
-<style>
-
-/* Suggested question buttons */
-
-[data-testid="stMain"] .stButton button {{
-    background: {green} !important;
-    color: {ink} !important;
-    border: 1px solid #a8b99b !important;
-    border-radius: 16px !important;
-    min-height: 55px;
-    text-align: left;
-    justify-content: flex-start;
-    padding: 15px 22px;
-    transition: all 0.3s ease;
-}}
-
-[data-testid="stMain"] .stButton button p {{
-    color: {ink} !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-}}
-
-[data-testid="stMain"] .stButton button:hover {{
-    background: {purple} !important;
-    transform: translateX(5px);
-    box-shadow: 0 5px 20px #91b47530;
-}}
-
-/* Question input visibility */
-
-[data-testid="stMain"] input::placeholder {{
-    color: {ink} !important;
-    opacity: 0.65;
-}}
-
-</style>
-""")
-
-
     questions = [
-        "Where am I spending the most?",
-        "How much budget do I have left?",
-        "How can I plan my savings?",
-        "Show my spending summary."
+        "What is my November spending?",
+        "Show my subscriptions.",
+        "Calculate my remaining balance.",
+        "Explain the 50/30/20 budgeting rule.",
+        "Create a monthly budget plan with income 15000."
     ]
 
     for i, question in enumerate(questions):
@@ -335,8 +278,7 @@ color:{ink};padding:22px;border-radius:22px">
             key=f"insight_question_{i}",
             use_container_width=True
         ):
-
-            s.insight_question = question
+            new_question = question
 
     with st.form("assistant_form", clear_on_submit=True):
 
@@ -351,17 +293,181 @@ color:{ink};padding:22px;border-radius:22px">
         )
 
         if submitted and question.strip():
+            new_question = question.strip()
 
-            s.insight_question = question.strip()
+    # RUN AI ONLY ON SUBMISSION
 
-    if "insight_question" in s:
+    if new_question:
+
+        s.insight_question = new_question
+        s.insight_result = None
+
+        with st.spinner("FinWise AI is analysing your request..."):
+
+            try:
+                s.insight_result = get_ai_answer(
+    new_question,
+    s.expenses
+)
+            except Exception as error:
+                st.error(
+                    f"AI request failed: {type(error).__name__}"
+                )
+
+    # DISPLAY AI RESPONSE
+
+    if s.insight_result is not None:
+
+        result = s.insight_result
 
         with st.chat_message("user"):
             st.write(s.insight_question)
 
         with st.chat_message("assistant"):
-            st.markdown(
-                generate_answer(s.insight_question)
+            st.markdown(result.get("answer", ""))
+
+        # VALIDATION STATUS
+
+        if result.get("validated", False):
+            st.success("Validation Passed")
+
+        else:
+            st.warning("Validation Incomplete")
+
+        # AI EXECUTION TRACE
+
+        with st.expander("View AI Execution Trace"):
+
+            st.write("Executed Tools:")
+            st.write(result.get("executed_tools", []))
+
+            st.write("Recovered Tools:")
+            st.write(result.get("recovered_tools", []))
+
+            st.write("Rejected Tools:")
+            st.write(result.get("rejected_tools", []))
+
+            st.write("Missing Tools:")
+            st.write(result.get("missing_tools", []))
+
+            st.write("Knowledge Sources:")
+            st.write(result.get("knowledge_sources", []))
+
+
+    # HUMAN APPROVAL SYSTEM
+
+    if "approval_manager" not in s:
+        s.approval_manager = ApprovalManager()
+
+    manager = s.approval_manager
+
+    result = s.insight_result or {}
+
+    can_approve = (
+        result.get("validated", False)
+        and "create_budget_plan" in
+        result.get("tools_used", [])
+    )
+
+    # CREATE PROPOSAL ONLY ON SUBMISSION
+
+    if new_question:
+        s.insight_proposal_id = None
+
+        if can_approve:
+
+            proposal = manager.create_proposal(
+                action="create_budget_plan",
+                details={
+                    "question": s.insight_question,
+                    "answer": result["answer"],
+                    "dataset": "User Recorded Expenses"
+                }
             )
 
-    st.caption("FinWise AI Assistant")
+            s.insight_proposal_id = proposal["id"]
+
+    # APPROVAL AND REJECTION BUTTONS
+
+    if can_approve and s.get("insight_proposal_id"):
+
+        proposal = manager.get_proposal(
+            s.insight_proposal_id
+        )
+
+        if proposal:
+
+            st.subheader("🛡️ Human Approval")
+
+            if proposal["status"] == "pending":
+
+                st.info(
+                    "Review this budget proposal "
+                    "before approving it."
+                )
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+
+                    if st.button(
+                        "✓ Approve",
+                        key="approve_budget",
+                        use_container_width=True
+                    ):
+                        manager.approve(proposal["id"])
+                        st.rerun()
+
+                with col2:
+
+                    if st.button(
+                        "✕ Reject",
+                        key="reject_budget",
+                        use_container_width=True
+                    ):
+                        manager.reject(proposal["id"])
+                        st.rerun()
+
+            elif proposal["status"] == "approved":
+
+                st.success("Budget proposal approved!")
+
+            elif proposal["status"] == "rejected":
+
+                st.warning("Budget proposal rejected.")
+
+    # REVIEWED PROPOSAL HISTORY
+
+    st.divider()
+
+    with st.expander("📜 Reviewed Proposal History"):
+
+        history = manager.get_history()
+
+        if not history:
+
+            st.info("No reviewed proposals yet.")
+
+        else:
+
+            for proposal in history:
+
+                st.write(
+                    proposal["details"]["question"]
+                )
+
+                st.write(
+                    "Status:",
+                    proposal["status"].upper()
+                )
+
+                st.caption(
+                    proposal.get("reviewed_at", "")
+                )
+
+                st.write(proposal["details"]["answer"])
+
+                st.divider()
+    st.caption(
+        "Powered by FinWise Agentic AI"
+    )
